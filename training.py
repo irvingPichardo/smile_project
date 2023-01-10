@@ -17,14 +17,10 @@ def image_paths(root):
     "get the full path to each image in the dataset"
     image_paths = []
     
-    # loop over the diretory tree
     for dirpath, dirnames, filenames in os.walk(root):
         for filename in filenames:
-            # extract the file extension from the filename
             extension = os.path.splitext(filename)[1].lower()
             
-            # if the filename is an image we build the full 
-            # path to the image and append it to our list
             if extension in valid_formats:
                 image_path = os.path.join(dirpath, filename)
                 image_paths.append(image_path)
@@ -38,15 +34,11 @@ def load_dataset(image_paths, target_size=IMG_SIZE):
     data = []
     labels = []
     
-    # loop over the image paths
     for image_path in image_paths:
-        # load the image in grayscale and convert it to an array
         image = load_img(image_path, color_mode="grayscale", target_size=target_size)
         image = img_to_array(image)
-        # append the array to our list 
         data.append(image)
         
-        # extract the label from the image path and append it to the `labels` list
         label = image_path.split(os.path.sep)[-3]
         label = 1 if label == "positives" else 0
         labels.append(label)
@@ -78,9 +70,7 @@ def build_model(input_shape=IMG_SIZE + [1]):
     model.compile(loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"])
     return model
 
-# count the number of each label 
 label, counts = np.unique(labels, return_counts=True)
-# compute the class weights
 counts = max(counts) / counts
 class_weights = dict(zip(label, counts))
 
@@ -95,19 +85,15 @@ class_weights = dict(zip(label, counts))
                                                       stratify=y_train,
                                                       random_state=42) 
 
-# build the model
 model = build_model()
-# train the model
 EPOCHS = 20
 history = model.fit(X_train, y_train,
                     validation_data=(X_valid, y_valid),
                     class_weight=class_weights,
                     batch_size=64,
                     epochs=EPOCHS)
-# save the model
 model.save("model")
 
-# plot the learning curves of the training and validation accuracy/loss
 import matplotlib.pyplot as plt
 
 acc = history.history['accuracy']
@@ -128,7 +114,6 @@ plt.legend()
 
 plt.show()
 
-# Evaluate the model on the test set
 test_loss, test_accuracy = model.evaluate(X_test, y_test)
 print("test loss: ", test_loss)
 print("test accuracy: ", test_accuracy)
